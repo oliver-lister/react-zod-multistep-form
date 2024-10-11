@@ -1,0 +1,48 @@
+{
+  "name": "@oliver-lister/react-zod-multistep-form",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c --bundleConfigAsCjs"
+  },
+  "keywords": [
+    "react",
+    "react hooks",
+    "typescript",
+    "npm",
+    "multistep",
+    "mutli-step",
+    "form",
+    "zod",
+    "validation"
+  ],
+  "repository": "oliver-lister/react-zod-multistep-form",
+  "author": "oliver-lister",
+  "license": "Apache-2.0",
+  "description": "A React hook for managing multi-step forms with Zod schema validation and react-hook-form integration. Simplifies navigation between form steps, handles form state, validation, and error management with ease.",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.0",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.0",
+    "@types/react": "^18.3.11",
+    "rollup": "^4.24.0",
+    "rollup-plugin-dts": "^6.1.1",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "tslib": "^2.7.0",
+    "typescript": "^5.6.3"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
+    "@hookform/resolvers": "^3.9.0",
+    "zod": "^3.23.8"
+  },
+  "files": [
+    "dist"
+  ]
+}
