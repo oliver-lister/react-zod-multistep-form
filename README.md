@@ -70,7 +70,7 @@ const AgeStep: StepComponent<FormData> = ({ register, errors }) => (
 ### Step 3: Define your form steps
 
 ```tsx
-const steps = [
+const steps: Step<FormData>[] = [
   { component: NameStep, fields: ["name"] },
   { component: AgeStep, fields: ["age"] },
 ];

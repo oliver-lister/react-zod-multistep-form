@@ -13,7 +13,7 @@ import { ZodSchema } from "zod";
 
 export type StepComponentProps<FormData extends FieldValues> = {
   control?: Control<FormData>;
-  register?: UseFormRegister<FormData>;
+  register: UseFormRegister<FormData>;
   errors: FieldErrors<FormData>;
 };
 
