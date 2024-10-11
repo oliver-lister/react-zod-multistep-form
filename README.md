@@ -154,7 +154,7 @@ The hook returns an object with several useful properties and functions:
 
 ## License
 
-This project is licensed under the ISC License.
+This project is licensed under the Apache License 2.0
 
 ---
 
