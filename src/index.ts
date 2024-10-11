@@ -1,8 +1,9 @@
 import {
   useMultiStepForm,
   StepComponentProps,
-  FormStep,
+  Step,
+  StepComponent,
 } from "./hooks/useMultiStepForm";
 
 export { useMultiStepForm };
-export type { FormStep, StepComponentProps };
+export type { Step, StepComponent, StepComponentProps };

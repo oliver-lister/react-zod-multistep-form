@@ -18,6 +18,9 @@ while maintaining robust validation and form control.
   ensuring validation is respected.
 - **Navigation callbacks**: Simple `goToNextStep` and `goToPreviousStep`
   functions to handle form step transitions while respecting validation.
+- **Field-specific validation**: Uses `trigger` from `react-hook-form` to
+  validate only the fields in the current step before allowing navigation to the
+  next step.
 
 ## Installation
 
@@ -45,9 +48,9 @@ type FormData = z.infer<typeof schema>;
 ### Step 2: Create form step components
 
 ```tsx
-import { FormStepComponent } from "@oliver-lister/react-zod-multistep-form";
+import { StepComponent } from "react-zod-multistep-form";
 
-const NameStep: FormStepComponent<FormData> = ({ register, errors }) => (
+const NameStep: StepComponent<FormData> = ({ register, errors }) => (
   <div>
     <label>Name</label>
     <input {...register("name")} />
@@ -55,7 +58,7 @@ const NameStep: FormStepComponent<FormData> = ({ register, errors }) => (
   </div>
 );
 
-const AgeStep: FormStepComponent<FormData> = ({ register, errors }) => (
+const AgeStep: StepComponent<FormData> = ({ register, errors }) => (
   <div>
     <label>Age</label>
     <input type="number" {...register("age")} />
@@ -76,7 +79,7 @@ const steps = [
 ### Step 4: Use `useMultiStepForm` in your form component
 
 ```tsx
-import useMultiStepForm from "@oliver-lister/react-zod-multistep-form";
+import useMultiStepForm from "react-zod-multistep-form";
 
 const MultiStepForm = () => {
   const {
@@ -95,7 +98,7 @@ const MultiStepForm = () => {
     initialValues: { name: "", age: 0 },
   });
 
-  const onSubmit = (data: { name: string; age: number }) => {
+  const onSubmit = (data: FormData) => {
     console.log(data);
   };
 
@@ -118,17 +121,46 @@ const MultiStepForm = () => {
 };
 ```
 
+### Using `trigger` for Field-Specific Validation
+
+The `useMultiStepForm` hook leverages `react-hook-form`'s `trigger` function to
+validate only the fields present in the current step before moving to the next
+one. This ensures that each form step only validates the fields it's responsible
+for, enhancing performance and making the validation process more intuitive.
+
+In the `goToNextStep` function, the `trigger` method is used with the list of
+fields from the current step, which ensures that only the fields in that step
+are validated before the form transitions to the next step. If validation fails,
+the user is not allowed to move to the next step until the errors are resolved.
+
+Example:
+
+```tsx
+const goToNextStep = useCallback(async () => {
+  const isValid = await trigger(steps[currentStepIndex].fields); // Only validate current step fields
+  if (!isValid) return;
+
+  setCurrentStepIndex((prevStep) =>
+    prevStep < steps.length - 1 ? prevStep + 1 : prevStep
+  );
+}, [currentStepIndex, steps, trigger]);
+```
+
+This approach ensures that each form step only validates the relevant fields,
+which makes the process more efficient and prevents unnecessary validation
+across the entire form.
+
 ### Optional: Separate out Navigation Button logic
 
 ```tsx
 type FormNavButtonsProps = {
   goToPreviousStep: () => void;
-  goToNextStep: Promise<void>;
+  goToNextStep: () => Promise<void>;
   isFirstStep: boolean;
   isLastStep: boolean;
 };
 
-export const FormNavButtons: React.FC<NavProps> = ({
+export const FormNavButtons: React.FC<FormNavButtonsProps> = ({
   goToPreviousStep,
   goToNextStep,
   isFirstStep,

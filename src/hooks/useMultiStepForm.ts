@@ -17,13 +17,17 @@ export type StepComponentProps<FormData extends FieldValues> = {
   errors: FieldErrors<FormData>;
 };
 
-export type FormStep<FormData extends FieldValues> = {
-  component: React.FC<StepComponentProps<FormData>>;
+export type StepComponent<FormData extends FieldValues> = React.FC<
+  StepComponentProps<FormData>
+>;
+
+export type Step<FormData extends FieldValues> = {
+  component: StepComponent<FormData>;
   fields: Path<FormData>[];
 };
 
 type UseMultiStepFormProps<FormData extends FieldValues> = {
-  steps: FormStep<FormData>[];
+  steps: Step<FormData>[];
   schema: ZodSchema<FormData>;
   initialValues: DefaultValues<FormData>;
 };
