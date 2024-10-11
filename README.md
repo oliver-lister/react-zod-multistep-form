@@ -1,49 +1,53 @@
 # React Zod Multi-Step Form Hook
 
-`@oliver-lister/react-zod-multistep-form` is a lightweight React hook designed
-to simplify the management of multi-step forms. It integrates `react-hook-form`
-with `Zod` schema validation to handle form state, validation, and error
-management across multiple steps. With this hook, navigating between form steps
-becomes seamless while maintaining robust validation and form control.
+`react-zod-multistep-form` is a lightweight React hook designed to simplify the
+management of multi-step forms. It integrates `react-hook-form` with `Zod`
+schema validation to handle form state, validation, and error management across
+multiple steps. This hook provides a seamless way to navigate between form steps
+while maintaining robust validation and form control.
 
 ## Features
 
-- **Multi-step form management:** Easily navigate through multiple form steps.
-- **Zod schema validation:** Integrates `Zod` for schema-based validation at
-  each step.
-- **React Hook Form integration:** Leverages `react-hook-form` to manage form
+- **Multi-step form management**: Easily navigate through multiple form steps
+  with built-in state management.
+- **Zod schema validation**: Integrates `Zod` for schema-based validation at
+  each step to ensure type safety.
+- **React Hook Form integration**: Leverages `react-hook-form` to handle form
   state, registration, and validation.
-- **Error handling:** Provides detailed error management for each form step.
-- **Callbacks for next and back navigation:** Simple API for moving between
-  steps while ensuring validation is respected.
+- **Error handling**: Provides detailed error management for each form step,
+  ensuring validation is respected.
+- **Navigation callbacks**: Simple `goToNextStep` and `goToPreviousStep`
+  functions to handle form step transitions while respecting validation.
 
 ## Installation
 
 ```bash
-npm install @oliver-lister/react-zod-multistep-form
+npm install react-zod-multistep-form
 ```
 
 ## Usage
 
-```tsx
-import React from "react";
-import { z } from "zod";
-import useMultiStepForm, {
-  FormStepComponent,
-} from "@oliver-lister/react-zod-multistep-form";
-import { useFormContext } from "react-hook-form";
+Here’s how to use the `useMultiStepForm` hook in your application:
 
-// Define your form schema with Zod
+### Step 1: Define your form schema using Zod
+
+```tsx
+import { z } from "zod";
+
 const schema = z.object({
   name: z.string().min(2, "Name is required"),
   age: z.number().min(18, "Must be at least 18"),
 });
 
-// Define your form steps
-const NameStep: FormStepComponent<{ name: string }> = ({
-  register,
-  errors,
-}) => (
+type FormData = z.infer<typeof schema>;
+```
+
+### Step 2: Create form step components
+
+```tsx
+import { FormStepComponent } from "@oliver-lister/react-zod-multistep-form";
+
+const NameStep: FormStepComponent<FormData> = ({ register, errors }) => (
   <div>
     <label>Name</label>
     <input {...register("name")} />
@@ -51,32 +55,41 @@ const NameStep: FormStepComponent<{ name: string }> = ({
   </div>
 );
 
-const AgeStep: FormStepComponent<{ age: number }> = ({ register, errors }) => (
+const AgeStep: FormStepComponent<FormData> = ({ register, errors }) => (
   <div>
     <label>Age</label>
     <input type="number" {...register("age")} />
     {errors.age && <p>{errors.age.message}</p>}
   </div>
 );
+```
 
+### Step 3: Define your form steps
+
+```tsx
 const steps = [
   { component: NameStep, fields: ["name"] },
   { component: AgeStep, fields: ["age"] },
 ];
+```
 
-// Example usage of the hook in your form component
+### Step 4: Use `useMultiStepForm` in your form component
+
+```tsx
+import useMultiStepForm from "@oliver-lister/react-zod-multistep-form";
+
 const MultiStepForm = () => {
   const {
-    CurrentStepComponent,
-    next,
-    back,
+    CurrentStep,
+    goToNextStep,
+    goToPreviousStep,
     isFirstStep,
     isLastStep,
     handleSubmit,
     control,
     errors,
     register,
-  } = useMultiStepForm({
+  } = useMultiStepForm<FormData>({
     steps,
     schema,
     initialValues: { name: "", age: 0 },
@@ -87,19 +100,15 @@ const MultiStepForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <CurrentStepComponent
-        control={control}
-        register={register}
-        errors={errors}
-      />
+    <form noValidate onSubmit={handleSubmit(onSubmit)}>
+      <CurrentStep control={control} register={register} errors={errors} />
       {!isFirstStep && (
-        <button type="button" onClick={back}>
+        <button type="button" onClick={() => goToPreviousStep()}>
           Back
         </button>
       )}
       {!isLastStep && (
-        <button type="button" onClick={next}>
+        <button type="button" onClick={() => goToNextStep()}>
           Next
         </button>
       )}
@@ -107,57 +116,94 @@ const MultiStepForm = () => {
     </form>
   );
 };
-
-export default MultiStepForm;
 ```
 
-### Step-by-Step Example
+### Optional: Separate out Navigation Button logic
 
-1. **Define a Zod schema** to validate each step of your form.
-2. **Create form step components** using the `FormStepComponent` type. These
-   components will display form fields and handle errors.
-3. **Define your form steps** by creating an array of objects, where each object
-   has a `component` (your form step) and `fields` (the fields to validate).
-4. **Use the `useMultiStepForm` hook** to manage form state, navigation, and
+```tsx
+type FormNavButtonsProps = {
+  goToPreviousStep: () => void;
+  goToNextStep: Promise<void>;
+  isFirstStep: boolean;
+  isLastStep: boolean;
+};
+
+export const FormNavButtons: React.FC<NavProps> = ({
+  goToPreviousStep,
+  goToNextStep,
+  isFirstStep,
+  isLastStep,
+}) => {
+  return (
+    <nav>
+      {!isFirstStep && (
+        <button type="button" onClick={goToPreviousStep}>
+          Back
+        </button>
+      )}
+      {!isLastStep && (
+        <button type="button" onClick={goToNextStep}>
+          Next
+        </button>
+      )}
+      {isLastStep && <button type="submit">Submit</button>}
+    </nav>
+  );
+};
+```
+
+### Step-by-Step Guide
+
+1. **Define a Zod schema**: This schema validates each step of your form.
+2. **Create form step components**: Use the `FormStepComponent` type to build
+   form components that handle form fields and errors.
+3. **Define form steps**: Create an array of objects where each object contains
+   a `component` and `fields` that correspond to the Zod schema.
+4. **Use the `useMultiStepForm` hook**: Manage form state, navigation, and
    validation across steps.
-5. **Render the form** and control the step navigation with the provided `next`
-   and `back` functions.
+5. **Render the form**: Use the hook's `goToNextStep` and `goToPreviousStep`
+   functions to control navigation between steps.
+
+## API Reference
 
 ### Parameters
 
 The `useMultiStepForm` hook accepts the following parameters:
 
-- **`steps`**: An array of form steps, where each step has a `component` and a
-  list of fields for validation.
-- **`schema`**: A Zod schema that defines the structure and validation for your
-  form data.
-- **`initialValues`**: The initial form values for each field.
+- **`steps`**: An array of form steps, each with a `component` and a list of
+  `fields` to validate.
+- **`schema`**: A Zod schema that defines the structure and validation rules for
+  your form data.
+- **`initialValues`**: The initial values for each form field.
 
-### Returns
+The hook also accepts a generic type that can be inferred from your Zod schema,
+allowing for type-safe form handling.
 
-The hook returns an object with several useful properties and functions:
+### Return Values
 
-- **`CurrentStepComponent`**: The current step's component to render.
+The hook returns an object containing the following properties:
+
+- **`CurrentStep`**: The current form step component to render.
 - **`currentStepIndex`**: The index of the current step.
 - **`setCurrentStepIndex`**: A function to manually set the current step index.
-- **`next`**: Moves to the next step, ensuring that the current step's
-  validation passes.
-- **`back`**: Moves back to the previous step.
-- **`isFirstStep`**: A boolean indicating whether the current step is the first
-  step.
-- **`isLastStep`**: A boolean indicating whether the current step is the last
-  step.
-- **`handleSubmit`**: The submit handler for the form.
-- **`control`**: The control object from `react-hook-form`.
-- **`errors`**: The errors object from `react-hook-form`.
-- **`register`**: The register function from `react-hook-form`.
+- **`goToNextStep`**: Function to move to the next step, ensuring the current
+  step's validation passes.
+- **`goToPreviousStep`**: Function to move to the previous step.
+- **`isFirstStep`**: Boolean indicating if the current step is the first step.
+- **`isLastStep`**: Boolean indicating if the current step is the last step.
+- **`handleSubmit`**: The form submission handler from `react-hook-form`.
+- **`control`**: The `control` object from `react-hook-form` for managing form
+  fields.
+- **`errors`**: An object containing validation errors for each form field.
+- **`register`**: The `register` function from `react-hook-form` for registering
+  form fields.
 
 ## License
 
-This project is licensed under the Apache License 2.0
- 
+This project is licensed under the Apache License 2.0.
+
 ---
 
-This package helps you easily build multi-step forms with Zod validation in
-React. If you encounter any issues or have feedback, feel free to open an issue
-or contribute to the repository!
+This package simplifies the process of building multi-step forms with Zod
+validation in React. If you encounter any issues or have suggestions for
+improvements, feel free to open an issue or contribute to the repository!

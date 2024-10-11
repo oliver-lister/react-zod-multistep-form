@@ -11,30 +11,28 @@ import {
 } from "react-hook-form";
 import { ZodSchema } from "zod";
 
-export type FormStepComponentProps<FormData extends FieldValues> = {
+export type StepComponentProps<FormData extends FieldValues> = {
   control?: Control<FormData>;
   register?: UseFormRegister<FormData>;
   errors: FieldErrors<FormData>;
 };
 
-export type FormStepComponent<FormData extends FieldValues> = React.FC<
-  FormStepComponentProps<FormData>
->;
-
 export type FormStep<FormData extends FieldValues> = {
-  component: FormStepComponent<FormData>;
+  component: React.FC<StepComponentProps<FormData>>;
   fields: Path<FormData>[];
+};
+
+type UseMultiStepFormProps<FormData extends FieldValues> = {
+  steps: FormStep<FormData>[];
+  schema: ZodSchema<FormData>;
+  initialValues: DefaultValues<FormData>;
 };
 
 export const useMultiStepForm = <FormData extends FieldValues>({
   steps,
   schema,
   initialValues,
-}: {
-  steps: FormStep<FormData>[];
-  schema: ZodSchema<FormData>;
-  initialValues: DefaultValues<FormData>;
-}) => {
+}: UseMultiStepFormProps<FormData>) => {
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
 
   const {
@@ -48,7 +46,7 @@ export const useMultiStepForm = <FormData extends FieldValues>({
     defaultValues: initialValues,
   });
 
-  const next = useCallback(async () => {
+  const goToNextStep = useCallback(async () => {
     const isValid = await trigger(steps[currentStepIndex].fields);
     if (!isValid) return;
 
@@ -58,23 +56,23 @@ export const useMultiStepForm = <FormData extends FieldValues>({
     });
   }, [currentStepIndex, steps, trigger]);
 
-  const back = useCallback(() => {
+  const goToPreviousStep = useCallback(() => {
     setCurrentStepIndex((prevStep) => {
       if (prevStep <= 0) return prevStep;
       return prevStep - 1;
     });
   }, []);
 
-  const CurrentStepComponent = steps[currentStepIndex].component;
+  const CurrentStep = steps[currentStepIndex].component;
   const isFirstStep = currentStepIndex <= 0;
   const isLastStep = currentStepIndex >= steps.length - 1;
 
   return {
-    CurrentStepComponent,
+    CurrentStep,
     currentStepIndex,
     setCurrentStepIndex,
-    next,
-    back,
+    goToNextStep,
+    goToPreviousStep,
     isFirstStep,
     isLastStep,
     handleSubmit,
