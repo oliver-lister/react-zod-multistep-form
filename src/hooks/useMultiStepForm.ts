@@ -12,8 +12,8 @@ import {
 import { ZodSchema } from "zod";
 
 export type FormStepComponentProps<FormData extends FieldValues> = {
-  control: Control<FormData>;
-  register: UseFormRegister<FormData>;
+  control?: Control<FormData>;
+  register?: UseFormRegister<FormData>;
   errors: FieldErrors<FormData>;
 };
 
